@@ -1,90 +1,113 @@
 import React, { Component } from 'react'
-import { Modal, PageHeader, Button, Form, FormGroup, Col, FormControl } from 'react-bootstrap'
+import { Modal, PageHeader, Button, Form, FormGroup, Col, FormControl, Dropdown, Glyphicon, MenuItem } from 'react-bootstrap'
 import MdCreate from 'react-icons/lib/md/create'
+import '../index.css'
 
-import {create} from 'apisauce'
+import * as APIHelper from '../utils/api-helper'
+import {connect} from 'react-redux'
 
 class CreatePost extends Component {
 
-  state = {
-    showModal: false,
-    categories: [
-      {
-        'name': 'default'
-      }
-    ]
-  }
+    state = {
+        showModal: false,
+        categories: []
+    }
 
-  getCategoryList() {
-    const api = create({
-      baseURL: 'http://localhost:5001',
-      headers: {
-        'Authorization': '123'
-      },
-      mode: 'cors'
-    })
+    getCategoryList = () => {
+        APIHelper.loadCategories().then((response) => {
+            this.setState({categories: response.data.categories});
+        })
+    }
 
-    api.get('/categories')
-      .then((response) => {
-         this.setState({categories: response.data.categories});
-       })
-  }
+    createPost(data) {
+        APIHelper.createPost(data).then((response) => {
+            console.log(response.data)
+            this.close();
+            this.getCategoryList();
+        })
+    }
 
-  open = () => this.setState({showModal: true})
-  close = () => this.setState({showModal: false})
+    open = () => this.setState({showModal: true})
+    close = () => this.setState({showModal: false})
 
-  componentDidMount() {
-    this.getCategoryList();
-  }
+    componentDidMount() {
+        this.getCategoryList();
+    }
 
-  render() {
-    return(
-      <div>
-        <PageHeader>
-          Posts
-          <Button bsStyle="success" className='pull-right' bsSize='large' onClick={this.open}>
-            <MdCreate/>
-          </Button>
-        </PageHeader>
+    handleSubmit = (event) => {
+        event.preventDefault()
 
-        <Modal show={this.state.showModal}>
-          <Modal.Body>
-            <Form horizontal>
-              <FormGroup controlId="title">
-                <Col sm={12}>
-                  <FormControl type="text" placeholder="Title" />
-                </Col>
-              </FormGroup>
-              <FormGroup controlId="body">
-                <Col sm={12}>
-                  <FormControl type="text" placeholder="Body" />
-                </Col>
-              </FormGroup>
-              <FormGroup controlId="author">
-                <Col sm={12}>
-                  <FormControl type="text" placeholder="Author" />
-                </Col>
-              </FormGroup>
-              <FormGroup controlId="category-select">
-                <Col sm={12}>
-                  <FormControl componentClass="select" placeholder="Category">
-                    {this.state.categories.map(category =>
-                      <option value={category.name} key={category.name}>{category.name}</option>
-                    )}
-                  </FormControl>
-                </Col>
-              </FormGroup>
-            </Form>
-          </Modal.Body>
+        var data = {
+            'id': require('uuid/v4')(),
+            'timestamp': Date.now(),
+            'title': event.target['title'].value,
+            'body': event.target['body'].value,
+            'author': event.target['author'].value,
+            'category': event.target['category'].value
+        }
 
-          <Modal.Footer>
-            <Button onClick={this.close}>Close</Button>
-            <Button bsStyle="primary">Create Post</Button>
-          </Modal.Footer>
-        </Modal>
-      </div>
-    )
-  }
+        this.createPost(data)
+    }
+
+    render() {
+        return(
+            <div>
+              <PageHeader>
+                Posts
+                <Dropdown id="dropdown-custom-1" className='pull-right'>
+                  <Dropdown.Toggle>
+                    Sort
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu className="super-colors">
+                    <MenuItem eventKey="1">Title</MenuItem>
+                    <MenuItem eventKey="2">Time</MenuItem>
+                    <MenuItem eventKey="3">Votes</MenuItem>
+                  </Dropdown.Menu>
+                </Dropdown>
+                <Button bsStyle="success" className='pull-right mr10' onClick={this.open} >
+                  <MdCreate/>
+                </Button>
+              </PageHeader>
+
+              <Modal show={this.state.showModal}>
+                <Modal.Body>
+                  <Form horizontal onSubmit={this.handleSubmit}>
+                    <FormGroup controlId="title">
+                      <Col sm={12}>
+                        <FormControl type="text" placeholder="Title" name='title' />
+                      </Col>
+                    </FormGroup>
+                    <FormGroup controlId="body">
+                      <Col sm={12}>
+                        <FormControl type="text" placeholder="Body" name='body' />
+                      </Col>
+                    </FormGroup>
+                    <FormGroup controlId="author">
+                      <Col sm={12}>
+                        <FormControl type="text" placeholder="Author" name='author' />
+                      </Col>
+                    </FormGroup>
+                    <FormGroup controlId="category-select">
+                      <Col sm={12}>
+                        <FormControl componentClass="select" placeholder="Category" name='category'>
+                            {this.state.categories.map(category =>
+                                <option value={category.name} key={category.name}>{category.name}</option>
+                            )}
+                        </FormControl>
+                      </Col>
+                    </FormGroup>
+                    <FormGroup controlId='actions'>
+                      <div className='container'>
+                        <Button bsStyle="primary" type='submit'>Create Post</Button>&nbsp;
+                        <Button onClick={this.close} bsStyle='default'>Close</Button>
+                      </div>
+                    </FormGroup>
+                  </Form>
+                </Modal.Body>
+              </Modal>
+            </div>
+        )
+    }
 
 }
-export default CreatePost;
+export default connect()(CreatePost)

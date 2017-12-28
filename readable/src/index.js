@@ -21,6 +21,4 @@ ReactDOM.render(
     </BrowserRouter>
   </Provider>, document.getElementById('root'));
 
-// console.log(store.getState())
-
 registerServiceWorker();

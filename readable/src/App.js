@@ -7,17 +7,25 @@ import CreatePost from './components/createPost'
 
 class App extends Component {
 
-  render() {
-    return (
-      <div className="App">
-        <NavigationBar/>
-        <div className='container'>
-          <CreatePost/>
-          <ListPosts/>
-        </div>
-      </div>
-    );
-  }
+    state = {
+
+    }
+
+    componentDidMount() {
+
+    }
+
+    render() {
+        return (
+            <div className="App">
+                <NavigationBar/>
+                <div className='container'>
+                    <CreatePost store={this.props.store}/>
+                    <ListPosts/>
+                </div>
+            </div>
+        );
+    }
 
 }
 

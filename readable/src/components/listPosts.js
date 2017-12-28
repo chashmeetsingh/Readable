@@ -1,51 +1,53 @@
-import React, { Component } from 'react';
-import { Panel, PanelGroup } from 'react-bootstrap'
+import React, { Component } from 'react'
+import { Panel, PanelGroup, Button, Glyphicon, Label, Badge } from 'react-bootstrap'
 import '../index.css'
 
-import APIHelper from '../utils/api-helper';
-import {
-  LOAD_CATEGORIES
-} from '../actions'
-import {create} from 'apisauce'
+import * as APIHelper from '../utils/api-helper'
+import TimeAgo from 'react-timeago'
 
 class ListPosts extends Component {
 
-  state = {
-    posts: [{'hello':'hello'}]
-  }
+    state = {
+        posts: []
+    }
 
-  componentDidMount() {
-    this.fetchAllPosts();
-  }
+    componentDidMount() {
+        this.fetchAllPosts();
+    }
 
-  fetchAllPosts() {
-    const api = create({
-      baseURL: 'http://localhost:5001',
-      headers: {
-        'Authorization': '123'
-      },
-      mode: 'cors'
-    })
+    fetchAllPosts() {
+        APIHelper.fetchAllPosts().then((response) => {
+            this.setState({posts: response.data});
+        })
+    }
 
-    api.get('/posts')
-      .then((response) => {
-         this.setState({posts: response.data});
-       })
-  }
+    sortByName() {
+        this.setState({ posts: this.posts.sort((a, b) => a.title > b.title) })
+    }
 
-  render() {
-    return (
-      <div id='posts'>
-        <PanelGroup>
-          {this.state.posts.map((post, id) =>
-            <Panel key={id} header={post.title} bsStyle="primary">
-              {post.body}
-            </Panel>
-          )}
-        </PanelGroup>
-      </div>
-    );
-  };
+    render() {
+        return (
+            <PanelGroup>
+                {this.state.posts.map((post, id) =>
+                    <Panel key={id} header={post.title} bsStyle="info">
+                        <div>
+                            {post.body}
+                        </div>
+                        <div>
+                            <Button bsStyle='success' bsSize='xsmall'><Glyphicon glyph="glyphicon glyphicon-triangle-top"/></Button>&nbsp;
+                            <Badge bsSize='large'>{post.voteScore} </Badge>&nbsp;
+                            <Button bsStyle='danger' bsSize='xsmall'><Glyphicon glyph="glyphicon glyphicon-triangle-bottom"/></Button>
+                        </div>
+                        <div>
+                            <Label bsStyle="info">{post.category}</Label>&nbsp;
+                            <Label bsStyle="warning">{post.author}</Label>&nbsp;
+                            <Label><TimeAgo date={post.timestamp} /></Label>
+                        </div>
+                    </Panel>
+                )}
+            </PanelGroup>
+        );
+    };
 }
 
 export default ListPosts;
